@@ -75,7 +75,6 @@ class MainActivity : Activity() {
     private var currentTab = 0
 
     // Bluetooth
-    private lateinit var btHero: HeroView
     private lateinit var btStatus: TextView
     private lateinit var btInfo: TextView
     private lateinit var btHint: TextView
@@ -90,7 +89,6 @@ class MainActivity : Activity() {
     private var deviceSignature = ""
 
     // OBD
-    private lateinit var obdHero: HeroView
     private lateinit var obdAdapter: TextView
     private lateinit var obdLink: TextView
     private lateinit var obdStatus: TextView
@@ -223,19 +221,19 @@ class MainActivity : Activity() {
             deviceList,
         )
 
-        btHero = HeroView(this, theme, HeroView.Kind.BLUETOOTH)
-        btStatus = text(24f, theme.text, title = true).apply { gravity = Gravity.CENTER }
-        btInfo = text(18f, theme.textDim).apply { gravity = Gravity.CENTER }
+        btStatus = text(24f, theme.text, title = true).apply { setPadding(dp(16), dp(8), dp(16), 0) }
+        btInfo = text(18f, theme.textDim).apply { setPadding(dp(16), dp(4), dp(16), 0) }
         btLog = mono()
         btLogScroll = ScrollView(this).apply { addView(btLog) }
         val right = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(btHero, LinearLayout.LayoutParams(MATCH, WRAP))
-            addView(btStatus)
-            addView(btInfo)
             addView(caption("Журнал"))
-            addView(panel().apply { addView(btLogScroll, LinearLayout.LayoutParams(MATCH, MATCH)) },
-                LinearLayout.LayoutParams(MATCH, 0, 1f))
+            addView(panel().apply {
+                addView(btStatus)
+                addView(btInfo)
+                addView(divider())
+                addView(btLogScroll, LinearLayout.LayoutParams(MATCH, 0, 1f))
+            }, LinearLayout.LayoutParams(MATCH, 0, 1f))
         }
         return split(left, right)
     }
@@ -298,19 +296,19 @@ class MainActivity : Activity() {
         }
         val left = column(settings, obdBuiltin, obdProfileNote)
 
-        obdHero = HeroView(this, theme, HeroView.Kind.GAUGE)
         obdStatus = text(18f, theme.textDim).apply {
-            gravity = Gravity.CENTER
             maxLines = 2
+            setPadding(dp(16), dp(10), dp(16), 0)
         }
         obdTrace = mono()
         val right = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(obdHero, LinearLayout.LayoutParams(MATCH, WRAP))
-            addView(obdStatus)
             addView(caption("Обмен с адаптером"))
-            addView(panel().apply { addView(ScrollView(context).apply { addView(obdTrace) }, LinearLayout.LayoutParams(MATCH, MATCH)) },
-                LinearLayout.LayoutParams(MATCH, 0, 1f))
+            addView(panel().apply {
+                addView(obdStatus)
+                addView(divider())
+                addView(ScrollView(context).apply { addView(obdTrace) }, LinearLayout.LayoutParams(MATCH, 0, 1f))
+            }, LinearLayout.LayoutParams(MATCH, 0, 1f))
         }
         return split(left, right)
     }
@@ -381,7 +379,6 @@ class MainActivity : Activity() {
     private fun renderBt() {
         val adapter = BluetoothAdapter.getDefaultAdapter()
         val on = adapter?.isEnabled == true
-        btHero.active = on
         btStatus.text = "Статус Bluetooth: " + when {
             adapter == null -> "нет адаптера"
             !on -> "Выключен"
@@ -444,7 +441,6 @@ class MainActivity : Activity() {
             else -> "нет связи"
         }
         obdLink.text = link
-        obdHero.active = ElmHub.connected
         obdStatus.text = ElmHub.lastStatus
         METRICS.forEach { m ->
             val cell = cells[m.key] ?: return@forEach
@@ -831,7 +827,7 @@ class MainActivity : Activity() {
 
     // ---------- элементы ----------
 
-    /** Две колонки: настройки слева, иконка статуса и журнал справа. */
+    /** Две колонки: настройки слева, статус и «Журнал» / «Обмен с адаптером» справа. */
     private fun split(left: View, right: View, leftWeight: Float = 1.15f) = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         addView(left, LinearLayout.LayoutParams(0, MATCH, leftWeight))
