@@ -13,6 +13,16 @@
 | **Данные** | JSON-профили автомобиля: загрузка (`Открыть JSON…` / поиск на флешке), выбор, все величины по группам |
 | **Экран** | тема оформления («Классика», «Комфорт») и версия |
 
+## Скриншоты (1920×720)
+
+<p align="center">
+  <img src="screenshots/01_bluetooth.png" width="455" alt="Bluetooth">
+  <img src="screenshots/02_obd_elm327.png" width="455" alt="OBD · ELM327">
+  <img src="screenshots/03_data.png" width="455" alt="Данные">
+  <img src="screenshots/04_screen.png" width="455" alt="Экран">
+</p>
+
+
 ## Собрать
 
 ```bash
