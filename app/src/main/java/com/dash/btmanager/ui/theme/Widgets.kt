@@ -24,7 +24,7 @@ import kotlin.math.min
  * ускорением, поэтому слои софтверными не делаем.
  */
 
-private fun Context.px(dp: Float) = dp * resources.displayMetrics.density
+private fun Context.px(dp: Float) = dp * resources.displayMetrics.density * DashTheme.SCALE
 
 /** Фон экрана: вертикальный градиент и мягкое светлое пятно под иконкой справа. */
 class BackgroundDrawable(private val t: DashTheme) : Drawable() {

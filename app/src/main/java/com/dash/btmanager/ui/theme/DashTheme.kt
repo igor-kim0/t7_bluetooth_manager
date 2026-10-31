@@ -142,6 +142,9 @@ class DashTheme(
         private const val PREFS = "ui"
         private const val KEY = "theme"
 
+        /** Общий масштаб интерфейса: шрифты (sp) и все размеры (dp) умножаются на него. */
+        const val SCALE = 1.15f
+
         fun load(context: Context): DashTheme {
             val id = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null)
             return ALL.firstOrNull { it.id == id } ?: CLASSIC

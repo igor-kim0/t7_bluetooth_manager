@@ -927,7 +927,7 @@ class MainActivity : Activity() {
     }
 
     private fun mono() = TextView(this).apply {
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f * DashTheme.SCALE)
         setTextColor(theme.textDim)
         typeface = Typeface.MONOSPACE
         setPadding(dp(10), dp(6), dp(10), dp(6))
@@ -935,7 +935,7 @@ class MainActivity : Activity() {
 
     /** Текст в стиле темы: шрифт, а у «Комфорта» ещё и голубой ореол. */
     private fun text(sp: Float, color: Int, title: Boolean = false) = TextView(this).apply {
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, sp * DashTheme.SCALE)
         setTextColor(color)
         typeface = if (title) theme.titleTypeface else theme.typeface
         if (theme.textGlow != 0) setShadowLayer(theme.textGlowRadius, 0f, 0f, theme.textGlow)
@@ -947,7 +947,7 @@ class MainActivity : Activity() {
     private fun ThemedSwitch.sync(v: Boolean) = if (isLaidOut) checked = v else setNow(v)
 
     private fun dp(v: Int): Int =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics).toInt()
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v * DashTheme.SCALE, resources.displayMetrics).toInt()
 
     private fun hms(wallMs: Long): String = HMS.format(Date(wallMs))
 
