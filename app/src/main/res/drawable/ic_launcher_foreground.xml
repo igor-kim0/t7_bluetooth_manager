@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Передний слой иконки: знак Bluetooth и буквы BM. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="4"
+        android:strokeLineJoin="round" android:strokeLineCap="round"
+        android:pathData="M44.5,28.5L63.5,47.5L54,57V19L63.5,28.5L44.5,47.5" />
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="2.6"
+        android:strokeLineJoin="round" android:strokeLineCap="round"
+        android:pathData="M43.5,64V78H48.0A3.5,3.5 0 0,0 48.0,71H43.5M43.5,64H47.5A3.5,3.5 0 0,1 47.5,71M54.5,78V64L59.5,72L64.5,64V78" />
+</vector>

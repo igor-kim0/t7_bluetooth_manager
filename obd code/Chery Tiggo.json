@@ -1,0 +1,687 @@
+{
+  "profile_name": "Chery Tiggo 7 Pro / Tenet T7 (Extended)",
+  "profile_version": "2.0",
+  "author": "Custom Diagnostic App",
+  "description": "Расширенный профиль диагностики для Chery Tiggo 7 Pro / Tenet T7",
+  
+  "connection_settings": {
+    "protocol": "CAN_11bit_500",
+    "baud_rate": 500000,
+    "timeout": 2000,
+    "retry_count": 3,
+    "default_header": "7E0"
+  },
+
+  "diagnostic_addresses": {
+    "ECM": "7E0",
+    "TCM": "7E1",
+    "ABS_ESP": "7E4",
+    "BCM": "7E6",
+    "EPS": "7E7",
+    "HVAC": "7E8",
+    "TPMS": "7E9"
+  },
+
+  "parameters": {
+    "engine": [
+      {
+        "name": "Обороты двигателя (RPM)",
+        "short_name": "RPM",
+        "pid": "010C",
+        "command": "010C",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "((A*256)+B)/4",
+        "unit": "об/мин",
+        "min": 0,
+        "max": 8000,
+        "precision": 0
+      },
+      {
+        "name": "Температура ОЖ двигателя",
+        "short_name": "Coolant",
+        "pid": "0105",
+        "command": "0105",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0
+      },
+      {
+        "name": "Температура всасываемого воздуха",
+        "short_name": "IAT",
+        "pid": "010F",
+        "command": "010F",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0
+      },
+      {
+        "name": "Массовый расход воздуха (MAF)",
+        "short_name": "MAF",
+        "pid": "0110",
+        "command": "0110",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "((A*256)+B)/100",
+        "unit": "г/с",
+        "min": 0,
+        "max": 655.35,
+        "precision": 2
+      },
+      {
+        "name": "Положение дроссельной заслонки",
+        "short_name": "TPS",
+        "pid": "0111",
+        "command": "0111",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "(A*100)/255",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "precision": 1
+      },
+      {
+        "name": "Краткосрочная коррекция топлива (Bank 1)",
+        "short_name": "STFT1",
+        "pid": "0106",
+        "command": "0106",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "((A-128)*100)/128",
+        "unit": "%",
+        "min": -100,
+        "max": 99.2,
+        "precision": 1
+      },
+      {
+        "name": "Долгосрочная коррекция топлива (Bank 1)",
+        "short_name": "LTFT1",
+        "pid": "0107",
+        "command": "0107",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "((A-128)*100)/128",
+        "unit": "%",
+        "min": -100,
+        "max": 99.2,
+        "precision": 1
+      },
+      {
+        "name": "Давление во впускном коллекторе (MAP)",
+        "short_name": "MAP",
+        "pid": "010B",
+        "command": "010B",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "A",
+        "unit": "кПа",
+        "min": 0,
+        "max": 255,
+        "precision": 0
+      },
+      {
+        "name": "Опережение зажигания",
+        "short_name": "Timing",
+        "pid": "010E",
+        "command": "010E",
+        "header": "7E0",
+        "response_length": 3,
+        "formula": "(A/2)-64",
+        "unit": "°",
+        "min": -64,
+        "max": 63.5,
+        "precision": 1
+      }
+    ],
+
+    "fuel_system": [
+      {
+        "name": "Давление в топливной рампе (низкое)",
+        "short_name": "Fuel LP",
+        "pid": "010A",
+        "command": "010A",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "((A*256)+B)*3",
+        "unit": "кПа",
+        "min": 0,
+        "max": 765000,
+        "precision": 0
+      },
+      {
+        "name": "Давление в топливной рампе (высокое)",
+        "short_name": "Fuel HP",
+        "pid": "221234",
+        "command": "221234",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/10",
+        "unit": "бар",
+        "min": 0,
+        "max": 200,
+        "precision": 1,
+        "note": "Chery-specific DID"
+      },
+      {
+        "name": "Температура топлива",
+        "short_name": "Fuel Temp",
+        "pid": "221235",
+        "command": "221235",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0,
+        "note": "Chery-specific DID"
+      },
+      {
+        "name": "Расход топлива (мгновенный)",
+        "short_name": "Fuel Rate",
+        "pid": "221236",
+        "command": "221236",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/20",
+        "unit": "л/ч",
+        "min": 0,
+        "max": 3276.75,
+        "precision": 2,
+        "note": "Chery-specific DID"
+      }
+    ],
+
+    "transmission": [
+      {
+        "name": "Температура масла АКПП/вариатора",
+        "short_name": "ATF Temp",
+        "pid": "221935",
+        "command": "221935",
+        "header": "7E1",
+        "response_length": 5,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 200,
+        "precision": 0,
+        "note": "Chery-specific DID"
+      },
+      {
+        "name": "Текущая передача",
+        "short_name": "Gear",
+        "pid": "221936",
+        "command": "221936",
+        "header": "7E1",
+        "response_length": 5,
+        "formula": "A",
+        "unit": "",
+        "min": 0,
+        "max": 10,
+        "precision": 0,
+        "note": "0=P, 1=R, 2=N, 3-9=D1-D7"
+      },
+      {
+        "name": "Давление масла в вариаторе",
+        "short_name": "CVT Press",
+        "pid": "221937",
+        "command": "221937",
+        "header": "7E1",
+        "response_length": 5,
+        "formula": "((A*256)+B)/100",
+        "unit": "бар",
+        "min": 0,
+        "max": 50,
+        "precision": 2,
+        "note": "Chery-specific DID"
+      },
+      {
+        "name": "Обороты входного вала вариатора",
+        "short_name": "CVT Input",
+        "pid": "221938",
+        "command": "221938",
+        "header": "7E1",
+        "response_length": 5,
+        "formula": "((A*256)+B)/4",
+        "unit": "об/мин",
+        "min": 0,
+        "max": 8000,
+        "precision": 0,
+        "note": "Chery-specific DID"
+      },
+      {
+        "name": "Обороты выходного вала вариатора",
+        "short_name": "CVT Output",
+        "pid": "221939",
+        "command": "221939",
+        "header": "7E1",
+        "response_length": 5,
+        "formula": "((A*256)+B)/4",
+        "unit": "об/мин",
+        "min": 0,
+        "max": 8000,
+        "precision": 0,
+        "note": "Chery-specific DID"
+      }
+    ],
+
+    "tpms": [
+      {
+        "name": "Давление в шине FL (переднее левое)",
+        "short_name": "Tire FL",
+        "pid": "224201",
+        "command": "224201",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A/4",
+        "unit": "кПа",
+        "min": 0,
+        "max": 500,
+        "precision": 1
+      },
+      {
+        "name": "Температура шины FL",
+        "short_name": "Tire FL T",
+        "pid": "224205",
+        "command": "224205",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0
+      },
+      {
+        "name": "ID датчика шины FL",
+        "short_name": "Sensor FL",
+        "pid": "224209",
+        "command": "224209",
+        "header": "7E9",
+        "response_length": 10,
+        "formula": "A*16777216+B*65536+C*256+D",
+        "unit": "",
+        "min": 0,
+        "max": 4294967295,
+        "precision": 0,
+        "display_as_hex": true
+      },
+      {
+        "name": "Давление в шине FR (переднее правое)",
+        "short_name": "Tire FR",
+        "pid": "224202",
+        "command": "224202",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A/4",
+        "unit": "кПа",
+        "min": 0,
+        "max": 500,
+        "precision": 1
+      },
+      {
+        "name": "Температура шины FR",
+        "short_name": "Tire FR T",
+        "pid": "224206",
+        "command": "224206",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0
+      },
+      {
+        "name": "ID датчика шины FR",
+        "short_name": "Sensor FR",
+        "pid": "22420A",
+        "command": "22420A",
+        "header": "7E9",
+        "response_length": 10,
+        "formula": "A*16777216+B*65536+C*256+D",
+        "unit": "",
+        "min": 0,
+        "max": 4294967295,
+        "precision": 0,
+        "display_as_hex": true
+      },
+      {
+        "name": "Давление в шине RL (заднее левое)",
+        "short_name": "Tire RL",
+        "pid": "224203",
+        "command": "224203",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A/4",
+        "unit": "кПа",
+        "min": 0,
+        "max": 500,
+        "precision": 1
+      },
+      {
+        "name": "Температура шины RL",
+        "short_name": "Tire RL T",
+        "pid": "224207",
+        "command": "224207",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0
+      },
+      {
+        "name": "ID датчика шины RL",
+        "short_name": "Sensor RL",
+        "pid": "22420B",
+        "command": "22420B",
+        "header": "7E9",
+        "response_length": 10,
+        "formula": "A*16777216+B*65536+C*256+D",
+        "unit": "",
+        "min": 0,
+        "max": 4294967295,
+        "precision": 0,
+        "display_as_hex": true
+      },
+      {
+        "name": "Давление в шине RR (заднее правое)",
+        "short_name": "Tire RR",
+        "pid": "224204",
+        "command": "224204",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A/4",
+        "unit": "кПа",
+        "min": 0,
+        "max": 500,
+        "precision": 1
+      },
+      {
+        "name": "Температура шины RR",
+        "short_name": "Tire RR T",
+        "pid": "224208",
+        "command": "224208",
+        "header": "7E9",
+        "response_length": 6,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0
+      },
+      {
+        "name": "ID датчика шины RR",
+        "short_name": "Sensor RR",
+        "pid": "22420C",
+        "command": "22420C",
+        "header": "7E9",
+        "response_length": 10,
+        "formula": "A*16777216+B*65536+C*256+D",
+        "unit": "",
+        "min": 0,
+        "max": 4294967295,
+        "precision": 0,
+        "display_as_hex": true
+      }
+    ],
+
+    "electrical": [
+      {
+        "name": "Напряжение бортовой сети",
+        "short_name": "Voltage",
+        "pid": "221005",
+        "command": "221005",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/1000",
+        "unit": "В",
+        "min": 0,
+        "max": 20,
+        "precision": 2
+      },
+      {
+        "name": "Ток генератора",
+        "short_name": "Alt Curr",
+        "pid": "221006",
+        "command": "221006",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/10",
+        "unit": "А",
+        "min": -100,
+        "max": 200,
+        "precision": 1
+      },
+      {
+        "name": "Напряжение аккумулятора",
+        "short_name": "Batt V",
+        "pid": "221007",
+        "command": "221007",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/1000",
+        "unit": "В",
+        "min": 0,
+        "max": 20,
+        "precision": 2
+      }
+    ],
+
+    "emissions": [
+      {
+        "name": "Температура катализатора (Bank 1, Sensor 1)",
+        "short_name": "CAT B1S1",
+        "pid": "013C",
+        "command": "013C",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "((A*256)+B)/10-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 6513.5,
+        "precision": 1
+      },
+      {
+        "name": "Температура катализатора (Bank 1, Sensor 2)",
+        "short_name": "CAT B1S2",
+        "pid": "013D",
+        "command": "013D",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "((A*256)+B)/10-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 6513.5,
+        "precision": 1
+      },
+      {
+        "name": "Напряжение датчика O2 (Bank 1, Sensor 1)",
+        "short_name": "O2 B1S1",
+        "pid": "0114",
+        "command": "0114",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "A/200",
+        "unit": "В",
+        "min": 0,
+        "max": 1.275,
+        "precision": 3
+      },
+      {
+        "name": "Напряжение датчика O2 (Bank 1, Sensor 2)",
+        "short_name": "O2 B1S2",
+        "pid": "0115",
+        "command": "0115",
+        "header": "7E0",
+        "response_length": 4,
+        "formula": "A/200",
+        "unit": "В",
+        "min": 0,
+        "max": 1.275,
+        "precision": 3
+      }
+    ],
+
+    "hybrid_system": [
+      {
+        "name": "Состояние гибридной системы",
+        "short_name": "Hybrid St",
+        "pid": "222001",
+        "command": "222001",
+        "header": "7E2",
+        "response_length": 5,
+        "formula": "A",
+        "unit": "",
+        "min": 0,
+        "max": 255,
+        "precision": 0,
+        "note": "0=OFF, 1=Engine, 2=Electric, 3=Hybrid"
+      },
+      {
+        "name": "Напряжение высоковольтной батареи",
+        "short_name": "HV Batt V",
+        "pid": "222002",
+        "command": "222002",
+        "header": "7E2",
+        "response_length": 5,
+        "formula": "((A*256)+B)/10",
+        "unit": "В",
+        "min": 0,
+        "max": 500,
+        "precision": 1,
+        "note": "Только для гибридных версий"
+      },
+      {
+        "name": "Ток высоковольтной батареи",
+        "short_name": "HV Batt I",
+        "pid": "222003",
+        "command": "222003",
+        "header": "7E2",
+        "response_length": 5,
+        "formula": "((A*256)+B-32768)/10",
+        "unit": "А",
+        "min": -3276.8,
+        "max": 3276.7,
+        "precision": 1,
+        "note": "Только для гибридных версий"
+      },
+      {
+        "name": "SOC высоковольтной батареи",
+        "short_name": "HV SOC",
+        "pid": "222004",
+        "command": "222004",
+        "header": "7E2",
+        "response_length": 5,
+        "formula": "A/2",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "precision": 1,
+        "note": "Только для гибридных версий"
+      },
+      {
+        "name": "Температура высоковольтной батареи",
+        "short_name": "HV Batt T",
+        "pid": "222005",
+        "command": "222005",
+        "header": "7E2",
+        "response_length": 5,
+        "formula": "A-40",
+        "unit": "°C",
+        "min": -40,
+        "max": 215,
+        "precision": 0,
+        "note": "Только для гибридных версий"
+      }
+    ],
+
+    "performance": [
+      {
+        "name": "Ускорение 0-100 км/ч (расчетное)",
+        "short_name": "0-100",
+        "pid": "223001",
+        "command": "223001",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/10",
+        "unit": "с",
+        "min": 0,
+        "max": 6553.5,
+        "precision": 1,
+        "note": "Расчетный параметр"
+      },
+      {
+        "name": "Мощность двигателя (расчетная)",
+        "short_name": "Power",
+        "pid": "223002",
+        "command": "223002",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/10",
+        "unit": "кВт",
+        "min": 0,
+        "max": 6553.5,
+        "precision": 1,
+        "note": "Расчетный параметр"
+      },
+      {
+        "name": "Крутящий момент (расчетный)",
+        "short_name": "Torque",
+        "pid": "223003",
+        "command": "223003",
+        "header": "7E0",
+        "response_length": 5,
+        "formula": "((A*256)+B)/10",
+        "unit": "Нм",
+        "min": 0,
+        "max": 6553.5,
+        "precision": 1,
+        "note": "Расчетный параметр"
+      }
+    ]
+  },
+
+  "diagnostic_trouble_codes": {
+    "supported_modes": ["03", "07", "0A"],
+    "code_format": {
+      "standard": "P0xxx, P2xxx",
+      "manufacturer": "P1xxx",
+      "chery_specific": "P3xxx"
+    }
+  },
+
+  "freeze_frame_data": {
+    "supported": true,
+    "max_frames": 5
+  },
+
+  "vehicle_information": {
+    "vin": {
+      "pid": "0902",
+      "command": "0902",
+      "header": "7E0"
+    },
+    "calibration_id": {
+      "pid": "0904",
+      "command": "0904",
+      "header": "7E0"
+    },
+    "ecu_name": {
+      "pid": "090A",
+      "command": "090A",
+      "header": "7E0"
+    }
+  }
+}
