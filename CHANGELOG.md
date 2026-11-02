@@ -3,7 +3,7 @@
 Формат — по мотивам [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии приложения — `versionName` из `app/build.gradle.kts`.
 
-## [Не выпущено]
+## [1.1] — 2026-11-02
 
 ### Добавлено
 
@@ -59,5 +59,5 @@
 - Масштаб интерфейса увеличен до 1.15 — шрифты и элементы чуть крупнее.
 - С вкладок Bluetooth и OBD убраны картинки, журнал занимает всю высоту.
 
-[Не выпущено]: https://github.com/igor-kim0/t7_bluetooth_manager/compare/v1.0...HEAD
+[1.1]: https://github.com/igor-kim0/t7_bluetooth_manager/compare/v1.0...v1.1
 [1.0]: https://github.com/igor-kim0/t7_bluetooth_manager/releases/tag/v1.0
