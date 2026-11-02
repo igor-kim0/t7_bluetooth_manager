@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Разрешения и объявления только полной версии (lite их не наследует). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Поиск JSON-профилей на флешке и во внутренней памяти. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+</manifest>

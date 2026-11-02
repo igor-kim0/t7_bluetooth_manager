@@ -27,6 +27,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import com.dash.btmanager.BuildConfig
 import com.dash.btmanager.bt.BtManager
 import com.dash.btmanager.obd.ElmHub
 import com.dash.btmanager.obd.ObdProfile
@@ -51,8 +52,12 @@ import java.util.Locale
  *  - OBD ([ElmHub]): выбранный адаптер ELM327, статус связи, все
  *    показатели и последние обмены «команда → ответ»;
  *  - Данные: JSON-профили автомобиля ([ProfileStore]) — загрузка, выбор
- *    и все величины выбранного профиля по группам;
+ *    и все величины выбранного профиля по группам (какие показывать —
+ *    диалог «Какие данные показывать»);
  *  - Экран: выбор темы оформления.
+ *
+ * Lite-вариант ([BuildConfig.LITE] = true) содержит только вкладку Bluetooth:
+ * поиск и спаривание устройств + журнал; OBD, профили и темы там нет.
  *
  * Тап по неспаренному устройству — спарить; по спаренному — меню: сделать
  * адаптером OBD, проверить SPP-подключение, забыть пару.
@@ -110,7 +115,7 @@ class MainActivity : Activity() {
         theme = DashTheme.load(this)
         applyTheme()
         BtManager.start(this)
-        ElmHub.start(this)
+        if (!BuildConfig.LITE) ElmHub.start(this)
         requestLocation()
     }
 
@@ -158,12 +163,15 @@ class MainActivity : Activity() {
 
         val tabBar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val pages = FrameLayout(this)
-        listOf(
-            "Bluetooth" to buildBtPane(),
-            "OBD · ELM327" to buildObdPane(),
-            "Данные" to buildDataPane(),
-            "Экран" to buildScreenPane(),
-        ).forEachIndexed { i, (title, pane) ->
+        val panes = ArrayList<Pair<String, View>>().apply {
+            add("Bluetooth" to buildBtPane())
+            if (!BuildConfig.LITE) {
+                add("OBD · ELM327" to buildObdPane())
+                add("Данные" to buildDataPane())
+                add("Экран" to buildScreenPane())
+            }
+        }
+        panes.forEachIndexed { i, (title, pane) ->
             val tab = text(24f, theme.tabText, title = true).apply {
                 text = title
                 gravity = Gravity.CENTER
@@ -319,6 +327,8 @@ class MainActivity : Activity() {
      * профилей и загрузка JSON.
      */
     private fun buildDataPane(): View {
+        val controls = panel()
+        addRows(controls, row("Какие данные показывать", chevron()) { pickVisibleParams() })
         dataBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         profileList = panel()
         val load = panel()
@@ -337,7 +347,7 @@ class MainActivity : Activity() {
                 setPadding(dp(10), dp(8), dp(10), 0)
             },
         )
-        return split(column(dataBox), right, leftWeight = 2f)
+        return split(column(controls, dataBox), right, leftWeight = 2f)
     }
 
     private fun buildScreenPane(): View {
@@ -371,8 +381,10 @@ class MainActivity : Activity() {
 
     private fun render() {
         renderBt()
-        renderObd()
-        renderData()
+        if (!BuildConfig.LITE) {
+            renderObd()
+            renderData()
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -382,7 +394,7 @@ class MainActivity : Activity() {
         btStatus.text = "Статус Bluetooth: " + when {
             adapter == null -> "нет адаптера"
             !on -> "Выключен"
-            ElmHub.connected -> "Подключено к OBD"
+            !BuildConfig.LITE && ElmHub.connected -> "Подключено к OBD"
             else -> "Включён"
         }
         btInfo.text = BtManager.adapterInfo()
@@ -406,7 +418,8 @@ class MainActivity : Activity() {
         }
 
         val devices = BtManager.devices()
-        val selected = ElmHub.address()
+        // В lite колонки-бейджа «OBD» нет — адаптер выбирается только в полной версии.
+        val selected = if (BuildConfig.LITE) null else ElmHub.address()
         val signature = devices.joinToString("|") { "${it.address}/${it.name}/${it.bondState}/${it.rssi}" } + "#$selected"
         if (signature != deviceSignature) {
             deviceSignature = signature
@@ -506,6 +519,8 @@ class MainActivity : Activity() {
             })
             return
         }
+        val hidden = hiddenKeys()
+        val hiddenCount = prof.params.count { it.key in hidden }
         dataBox.addView(panel().apply {
             setPadding(paddingLeft + dp(14), paddingTop + dp(8), paddingRight + dp(14), paddingBottom + dp(8))
             addView(text(24f, theme.accent, title = true).apply { text = prof.name })
@@ -514,7 +529,8 @@ class MainActivity : Activity() {
                 text = listOfNotNull(
                     prof.protocol?.let { "протокол $it" + (prof.elmProtocol?.let { n -> " (ATSP$n)" } ?: "") },
                     prof.defaultHeader?.let { "блок $it" },
-                    "параметров ${prof.params.size}",
+                    if (hiddenCount == 0) "параметров ${prof.params.size}"
+                    else "показано ${prof.params.size - hiddenCount} из ${prof.params.size}",
                     prof.version?.let { "v$it" },
                     prof.author,
                 ).joinToString(" · ")
@@ -531,10 +547,21 @@ class MainActivity : Activity() {
                 })
             }
         })
+        if (hiddenCount == prof.params.size) {
+            dataBox.addView(panel().apply {
+                addView(text(20f, theme.textDim).apply {
+                    text = "Все величины скрыты — откройте «Какие данные показывать» и отметьте нужные."
+                    setPadding(dp(16), dp(14), dp(16), dp(14))
+                })
+            })
+            return
+        }
         for (g in prof.groups) {
-            dataBox.addView(caption("${g.title} · ${g.params.size}"))
+            val shown = g.params.filter { it.key !in hidden }
+            if (shown.isEmpty()) continue
+            dataBox.addView(caption("${g.title} · ${shown.size}"))
             val grid = panel()
-            g.params.chunked(DATA_COLUMNS).forEachIndexed { n, line ->
+            shown.chunked(DATA_COLUMNS).forEachIndexed { n, line ->
                 if (n > 0) grid.addView(divider())
                 val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
                 line.forEach { p -> r.addView(paramCell(p), LinearLayout.LayoutParams(0, WRAP, 1f)) }
@@ -628,6 +655,85 @@ class MainActivity : Activity() {
         render()
     }
 
+    /** Скрытые величины текущего профиля (prefs «data_view» → hidden:<id профиля>). */
+    private fun hiddenKeys(): Set<String> =
+        ElmHub.profileId()?.let { id ->
+            getSharedPreferences(PREFS_DATA, Context.MODE_PRIVATE).getStringSet("hidden:$id", null)
+        } ?: emptySet()
+
+    /**
+     * Диалог мультивыбора величин вкладки «Данные»: чек-список по группам,
+     * тап — показать/скрыть, кнопки «Снять всё» / «Показать всё» / «Готово».
+     * Выбор сохраняется отдельно для каждого профиля и применяется сразу.
+     */
+    private fun pickVisibleParams() {
+        val prof = ElmHub.profile() ?: run {
+            message("Сначала выберите профиль автомобиля (справа) — выбор величин делается по профилю.")
+            return
+        }
+        val id = ElmHub.profileId() ?: return
+        val prefs = getSharedPreferences(PREFS_DATA, Context.MODE_PRIVATE)
+        val hidden = prefs.getStringSet("hidden:$id", null)?.let { HashSet(it) } ?: HashSet<String>()
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val marks = ArrayList<Pair<IconView, ObdProfile.Param>>()
+        fun sync() = marks.forEach { (m, p) -> m.visibility = if (p.key in hidden) View.INVISIBLE else View.VISIBLE }
+        fun apply() {
+            prefs.edit().putStringSet("hidden:$id", hidden).apply()
+            dataSignature = null // сила пересборки сетки на следующем render()
+            render()
+        }
+        val box = panel(opaque = true)
+        box.addView(text(22f, theme.accent, title = true).apply {
+            text = "Какие данные показывать"
+            setPadding(dp(16), dp(14), dp(16), dp(2))
+        })
+        box.addView(text(17f, theme.textDim).apply {
+            text = "${prof.name} · тап по величине — показать или скрыть"
+            setPadding(dp(16), 0, dp(16), dp(8))
+        })
+        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        for (g in prof.groups) {
+            list.addView(caption(g.title))
+            g.params.forEachIndexed { i, p ->
+                if (i > 0) list.addView(divider())
+                val mark = check(p.key !in hidden)
+                marks += mark to p
+                list.addView(row(p.name, mark) {
+                    if (p.key in hidden) hidden.remove(p.key) else hidden += p.key
+                    mark.visibility = if (p.key in hidden) View.INVISIBLE else View.VISIBLE
+                    apply()
+                }, LinearLayout.LayoutParams(MATCH, WRAP))
+            }
+        }
+        box.addView(divider())
+        box.addView(ScrollView(this).apply { addView(list) }, LinearLayout.LayoutParams(MATCH, dp(430)))
+        box.addView(divider())
+        box.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            fun action(label: String, block: () -> Unit) = text(20f, theme.accent, title = true).apply {
+                text = label
+                gravity = Gravity.CENTER
+                setPadding(dp(4), dp(14), dp(4), dp(14))
+                background = pressable()
+                setOnClickListener { block() }
+            }
+            addView(action("Снять всё") { hidden += prof.params.map { it.key }; sync(); apply() },
+                LinearLayout.LayoutParams(0, WRAP, 1f))
+            addView(action("Показать всё") { hidden.clear(); sync(); apply() },
+                LinearLayout.LayoutParams(0, WRAP, 1f))
+            addView(action("Готово") { dialog.dismiss() },
+                LinearLayout.LayoutParams(0, WRAP, 1f))
+        }, LinearLayout.LayoutParams(MATCH, WRAP))
+        dialog.setContentView(box)
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setLayout(dp(660), ViewGroup.LayoutParams.WRAP_CONTENT)
+            setDimAmount(0.55f)
+        }
+        dialog.show()
+    }
+
     private fun confirmDelete(e: ProfileStore.Entry) {
         listDialog("Удалить профиль «${e.name}»?", listOf("Удалить")) {
             val wasSelected = ElmHub.profileId() == e.id
@@ -656,6 +762,8 @@ class MainActivity : Activity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        // Константа: в lite ветка вырезается при компиляции, obd-код не остаётся.
+        if (BuildConfig.LITE) return
         if (requestCode != REQ_OPEN_JSON || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
         try {
@@ -693,6 +801,8 @@ class MainActivity : Activity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Константа: в lite поиск профилей на флешке отсутствует.
+        if (BuildConfig.LITE) return
         if (requestCode != REQ_STORAGE) return
         if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) scanJson()
         else message("Без доступа к памяти найти JSON нельзя — используйте «Открыть JSON-файл…».")
@@ -704,19 +814,36 @@ class MainActivity : Activity() {
             render()
             return
         }
-        listDialog(
-            "${d.name ?: "без имени"} — ${d.address}",
-            listOf("Сделать адаптером OBD", "Тест SPP-подключения", "Забыть пару"),
-        ) { which ->
-            when (which) {
-                0 -> {
-                    ElmHub.setDevice(this, d.address, d.name)
-                    ElmHub.start(this)
+        // В lite только спаривание и журнал — пункта «адаптер OBD» там нет.
+        // Ветки разнесены по if (BuildConfig.LITE): ненужная компилируется
+        // в мёртвый код и вырезается R8. Внутри одного when по строкам
+        // Kotlin такую ветку вырезать не умеет.
+        if (BuildConfig.LITE) {
+            listDialog(
+                "${d.name ?: "без имени"} — ${d.address}",
+                listOf("Тест SPP-подключения", "Забыть пару"),
+            ) { which ->
+                when (which) {
+                    0 -> BtManager.testConnect(d.address)
+                    1 -> BtManager.unpair(d.address)
                 }
-                1 -> BtManager.testConnect(d.address)
-                2 -> BtManager.unpair(d.address)
+                render()
             }
-            render()
+        } else {
+            listDialog(
+                "${d.name ?: "без имени"} — ${d.address}",
+                listOf("Сделать адаптером OBD", "Тест SPP-подключения", "Забыть пару"),
+            ) { which ->
+                when (which) {
+                    0 -> {
+                        ElmHub.setDevice(this, d.address, d.name)
+                        ElmHub.start(this)
+                    }
+                    1 -> BtManager.testConnect(d.address)
+                    2 -> BtManager.unpair(d.address)
+                }
+                render()
+            }
         }
     }
 
@@ -885,7 +1012,8 @@ class MainActivity : Activity() {
                 maxLines = 1
             })
         }, LinearLayout.LayoutParams(0, WRAP, 1f).apply { marginStart = dp(12) })
-        if (obd) addView(value().apply { text = "OBD" })
+        // В lite бейджа «OBD» нет — адаптер выбирается только в полной версии.
+        if (!BuildConfig.LITE && obd) addView(value().apply { text = "OBD" })
         addView(chevron(), LinearLayout.LayoutParams(WRAP, WRAP).apply { marginStart = dp(8) })
     }
 
@@ -963,6 +1091,7 @@ class MainActivity : Activity() {
         const val REQ_STORAGE = 2
         const val REQ_OPEN_JSON = 3
         const val TAB_DATA = 2
+        const val PREFS_DATA = "data_view"
         const val DATA_COLUMNS = 4
         const val MAX_JSON_BYTES = 2 * 1024 * 1024
         const val REFRESH_MS = 1_000L

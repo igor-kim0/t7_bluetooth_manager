@@ -26,18 +26,26 @@
 ## Собрать
 
 ```bash
-./gradlew assembleRelease   # app/build/outputs/apk/release/bt_manager-release.apk
-./gradlew test              # парсер OBD-ответов и профилей
+./gradlew assembleFullRelease   # app/build/outputs/apk/full/release/bt_manager-full-release.apk
+./gradlew assembleLiteRelease   # app/build/outputs/apk/lite/release/bt_manager-lite-release.apk
+./gradlew test                  # парсер OBD-ответов и профилей
 ```
 
 Требуется JDK 21 (Gradle 9.3.1 + AGP 9.1.1). APK подписан `keystore/debug.keystore`
 из репозитория: локальная и CI-сборки дают одинаковую подпись и ставятся поверх друг друга.
 
+## Варианты сборки
+
+- `full` — весь функционал: Bluetooth, OBD · ELM327, Данные (JSON-профили), Экран; пакет `com.dash.btmanager`.
+- `lite` — только Bluetooth: поиск и спаривание устройств + журнал подключения;
+  без OBD, профилей и тем; пакет `com.dash.btmanager.lite`, имя «Bluetooth Manager Lite»,
+  разрешение на чтение памяти не запрашивается.
+
 ## CI
 
 `.github/workflows/build.yml`: каждый пуш в `main` — сборка + тесты, APK в артефактах
 прогона. Пуш тега `v*` (например `git tag v1.1 && git push --tags`) — то же самое **плюс**
-GitHub Release с прикреплённым APK.
+GitHub Release с прикреплёнными APK (full и lite).
 
 ## Профили JSON
 
@@ -67,6 +75,7 @@ app/src/main/java/com/dash/btmanager/
                  + Formula (формулы байт), ProfileStore (JSON-профили)
   ui/            MainActivity — вёрстка экрана кодом; theme/ — панели,
                  переключатели, темы, фоновый градиент
+app/src/full/    manifest полной версии (разрешение на память для JSON)
 samples/         примеры профилей (см. выше)
 keystore/        debug.keystore — подпись release для CI
 ```
@@ -76,5 +85,7 @@ keystore/        debug.keystore — подпись release для CI
 - `targetSdk = 28` — намеренно: ГУ работает на Android 9 и без разрешений
   `BLUETOOTH_SCAN/CONNECT` из Android 12; приложение для сайдлоада, требования Play нет.
 - Скан устройств требует геопозицию (на Android 9 так отдают результаты скана).
+- Release-сборки обрабатываются R8 (minify + shrink resources): в lite-варианте
+  obd-движок выкидывается как недостижимый код; правила — `app/proguard-rules.pro`.
 - Масштаб интерфейса — константа `DashTheme.SCALE` (тек. 1.15).
 - Формулы завода-специфичных DID частично «не сверено» — всё помечено в `note` профиля.

@@ -21,6 +21,29 @@ android {
         versionName = "1.0"
     }
 
+    buildFeatures {
+        buildConfig = true
+        resValues = true
+    }
+
+    // full — все вкладки (Bluetooth, OBD, Данные, Экран);
+    // lite — только Bluetooth: поиск и спаривание устройств + журнал,
+    // идёт отдельным пакетом com.dash.btmanager.lite.
+    flavorDimensions += "version"
+    productFlavors {
+        create("full") {
+            dimension = "version"
+            buildConfigField("boolean", "LITE", "false")
+        }
+        create("lite") {
+            dimension = "version"
+            applicationIdSuffix = ".lite"
+            versionNameSuffix = " (Lite)"
+            resValue("string", "app_name", "Bluetooth Manager Lite")
+            buildConfigField("boolean", "LITE", "true")
+        }
+    }
+
     // Подпись debug-ключом (лежит в репе): локальная и будущие CI-сборки
     // дают одинаковую подпись и ставятся поверх друг друга.
     signingConfigs {
@@ -34,7 +57,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 режет мёртвый код: в lite-варианте выкидывает весь obd-движок
+            // (в MainActivity он за константой BuildConfig.LITE), а в full
+            // убирает неиспользуемые классы. Отражения только по классам
+            // платформы — см. proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             signingConfig = signingConfigs.getByName("release")
         }
     }

@@ -129,6 +129,25 @@ class ObdProfileTest {
         assertEquals(-9.0, outside.decode("6268023E")!!, 1e-9)
     }
 
+    /** Сводный профиль Cherry Tiggo 7 разбирается без ошибок. */
+    @Test
+    fun cherryTiggo7Profile_parses() {
+        val p = ObdProfile.parse(File("src/main/assets/profiles/Cherry Tiggo 7.json").readText())
+        assertEquals("Chery Tiggo 7 / 7 Pro / 7L (1.5T/1.6T) + DCT — сводный профиль", p.name)
+        assertEquals("6", p.elmProtocol)
+        assertEquals("7E0", p.defaultHeader)
+        assertTrue(p.warnings.toString(), p.warnings.isEmpty())
+        assertEquals(56, p.params.size)
+        // Ответы — из лога Car Scanner (samples/chery_tiggo_from_log.json).
+        val gear = p.params.first { it.shortName == "Gear" }
+        assertEquals("703", gear.header)
+        assertEquals("713", gear.rxHeader)
+        assertEquals("N/P", gear.format(gear.decode("620A5F09")!!))
+        assertEquals(1837.0, p.params.first { it.shortName == "Odo DCT" }.decode("620A6A0002CD94")!!, 0.01)
+        assertEquals("B03964E8", p.params.first { it.shortName == "Sensor FL" }.format(p.params.first { it.shortName == "Sensor FL" }.decode("623400B03964E8")!!))
+        assertEquals("VIN", p.info.first().title)
+    }
+
     /** VIN приходит несколькими кадрами ISO-TP. */
     @Test
     fun vin_multiFrame() {

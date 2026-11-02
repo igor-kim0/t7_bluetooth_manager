@@ -22,14 +22,16 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - name: Build release APK
-        run: ./gradlew assembleRelease test
+      - name: Build release APKs (full + lite)
+        run: ./gradlew assembleFullRelease assembleLiteRelease test
 
-      - name: Upload release APK (артифакт прогона)
+      - name: Upload release APKs (артефакт прогона)
         uses: actions/upload-artifact@v4
         with:
-          name: bt_manager-release-apk
-          path: app/build/outputs/apk/release/bt_manager-release.apk
+          name: bt_manager-release-apks
+          path: |
+            app/build/outputs/apk/full/release/bt_manager-full-release.apk
+            app/build/outputs/apk/lite/release/bt_manager-lite-release.apk
 
       # Релиз появляется только на тегах v1.0, v1.1…:
       # git tag v1.1 && git push --tags
@@ -37,5 +39,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/bt_manager-release.apk
+          files: |
+            app/build/outputs/apk/full/release/bt_manager-full-release.apk
+            app/build/outputs/apk/lite/release/bt_manager-lite-release.apk
           generate_release_notes: true

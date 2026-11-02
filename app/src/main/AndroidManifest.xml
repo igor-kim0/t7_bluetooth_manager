@@ -6,8 +6,9 @@
     <!-- Android 9: без разрешения на геопозицию скан не находит устройства. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- Поиск JSON-профилей на флешке и во внутренней памяти. -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Поиск JSON-профилей на флешке и во внутренней памяти.
+         Разрешение только в full-варианте: lite ничего не читает с флешки. -->
+    <!-- разрешение объявлено в src/full/AndroidManifest.xml -->
 
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
 
