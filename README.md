@@ -47,6 +47,8 @@
 прогона. Пуш тега `v*` (например `git tag v1.1 && git push --tags`) — то же самое **плюс**
 GitHub Release с прикреплёнными APK (full и lite).
 
+История версий — [CHANGELOG.md](CHANGELOG.md).
+
 ## Профили JSON
 
 Приложение опрашивает адаптер ELM327 по JDK-профилю автомобиля — JSON-файлу
